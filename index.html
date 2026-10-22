@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>PocketBI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{--bg:#edf1f3;--card:#fff;--tx:#12202b;--mut:#5f7281;--line:#dbe3e8;--acc:#0e7c86;--on:#fff;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0d171d;--card:#15232b;--tx:#e8f0f3;--mut:#93a8b5;--line:#243640;--acc:#3fc1cb;--on:#06222a;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0d171d;--card:#15232b;--tx:#e8f0f3;--mut:#93a8b5;--line:#243640;--acc:#3fc1cb;--on:#06222a;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px);background:var(--bg)}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0 auto;background:var(--bg);color:var(--tx);font:500 15px/1.4 Manrope,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding:16px 14px 100px;max-width:1100px}
+button,select{font:inherit;color:inherit}
+header{display:flex;align-items:center;gap:8px;margin-bottom:14px}
+h1{font-size:22px;font-weight:800;margin:0;letter-spacing:-.02em;flex:1}
+#sub{color:var(--mut);font-size:13px;margin:-6px 0 14px}
+.ib{border:1px solid var(--line);background:var(--card);border-radius:20px;padding:6px 12px;font-size:13px}
+#grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.tile{grid-column:span 2;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 12px 10px;min-width:0}
+.tile.k{grid-column:span 1}
+.th{display:flex;justify-content:space-between;gap:8px;font-size:13px;color:var(--mut)}
+.th button{border:0;background:none;color:var(--mut);padding:0 2px;font-size:15px}
+.kpi{font-size:30px;font-weight:800;letter-spacing:-.03em;margin-top:6px;color:var(--acc)}
+.cv{position:relative;height:230px;margin-top:8px}
+.tb{overflow-x:auto;max-height:320px;margin-top:8px}
+table{border-collapse:collapse;font-size:12.5px;white-space:nowrap}
+th,td{padding:5px 10px;text-align:left;border-bottom:1px solid var(--line)}
+th{color:var(--mut);font-weight:700;position:sticky;top:0;background:var(--card)}
+#empty{background:var(--card);border:1px dashed var(--line);border-radius:14px;padding:28px 18px;text-align:center}
+#empty h2{margin:0 0 6px;font-size:18px}
+#empty p{color:var(--mut);margin:0 0 16px}
+.pri,.sec{border-radius:12px;padding:12px 16px;font-weight:700;border:1px solid var(--acc);width:100%;margin-top:8px}
+.pri{background:var(--acc);color:var(--on)}
+.sec{background:none;color:var(--acc)}
+#bar{position:fixed;left:0;right:0;bottom:0;display:flex;gap:8px;padding:10px 12px calc(10px + env(safe-area-inset-bottom,0px));background:var(--card);border-top:1px solid var(--line)}
+#bar button{flex:1;border:0;border-radius:999px;padding:12px 6px;background:var(--bg);font-weight:700}
+#bar #bAdd{background:var(--acc);color:var(--on)}
+#sh{position:fixed;inset:0;z-index:20;background:rgba(0,0,0,.45);display:flex;align-items:flex-end}
+#sc{background:var(--card);width:100%;max-width:560px;margin:0 auto;max-height:88%;overflow:auto;border-radius:22px 22px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom,0px))}
+#sc h3{margin:0 0 6px;font-size:18px}
+label{display:block;color:var(--mut);font-size:13px;margin-top:12px}
+select{display:block;width:100%;margin-top:4px;padding:11px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--tx);font-size:16px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 4px}
+.chip{border:1px solid var(--line);background:var(--bg);border-radius:999px;padding:7px 13px;font-size:14px}
+.chip.on{background:var(--acc);color:var(--on);border-color:var(--acc)}
+#toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(86px + env(safe-area-inset-bottom,0px));background:var(--tx);color:var(--bg);padding:10px 16px;border-radius:12px;z-index:30;font-size:14px;max-width:90%}
+@media(min-width:760px){#grid{grid-template-columns:repeat(6,1fr)}.tile{grid-column:span 3}.tile.k{grid-column:span 2}}
+.tl{display:flex;gap:8px;margin-bottom:10px}.tl button{margin-top:0}.tl input{flex:1}label input{margin-top:4px}#bar button{font-size:13px;padding:12px 2px}#bar button.on{background:var(--acc);color:var(--on)}.fc{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}.v h2{font-size:18px;margin:4px 0 10px}.rw{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid var(--line)}.mut,small{color:var(--mut);font-size:12.5px}.d{font-size:12.5px;font-weight:700;margin-top:2px}.up{color:#2e9d5b}.dn{color:#d9484f}input,textarea{width:100%;padding:11px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--tx);font:inherit;font-size:16px}.msg{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 12px;margin:8px 0;white-space:pre-line}.msg.u{background:var(--acc);color:var(--on);border-color:var(--acc);margin-left:16%}</style></head><body>
+<header><h1>PocketBI</h1><button class="ib" id="th">Theme</button><button class="ib" id="rs">Reset</button></header>
+<div id="sub"></div>
+<section id="empty"><h2>Build a dashboard from your data</h2><p>Open a CSV or Excel file. It is read on this device and never uploaded.</p><button class="pri" id="o1">Open CSV or Excel file</button><button class="sec" id="o2">Try sample data</button></section>
+<section id="v0" class="v"><div class="tl"><button class="pri" id="bAdd">Add visual</button><button class="sec" id="bFil">Filters <span id="fc"></span></button></div><div class="fc" id="af2"></div><main id="grid"></main></section><section id="v1" class="v" hidden></section><section id="v2" class="v" hidden></section><section id="v3" class="v" hidden></section>
+<nav id="bar" hidden><button data-v="0">Dashboard</button><button data-v="1">Saved</button><button data-v="2">Data</button><button data-v="3">Ask</button></nav>
+<div id="sh" hidden><div id="sc"></div></div>
+<div id="toast" hidden></div>
+<input type="file" id="file" accept=".csv,.xlsx,.xls,.json,.txt,text/csv,application/json" hidden>
+<script>
+const $=s=>document.querySelector(s),PAL=['#0e9aa7','#e8a33d','#6366c9','#d9577a','#5aa469','#8a6bd1','#2f80c4','#c9704a'];
+const MO='jan,feb,mar,apr,may,jun,jul,aug,sep,oct,nov,dec'.split(',');
+let S={name:'',rows:[],cols:[],tiles:[],flt:{}},charts=[],V=0,qs='',sk='',sd=1,CH=[];
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const num=v=>{if(typeof v==='number')return v;const t=String(v).replace(/[,\s$€£৳%]/g,'');return t!==''&&!isNaN(t)?+t:NaN};
+const isn=v=>typeof v==='number'&&v===v;
+const fmt=n=>Math.abs(n)>=1e6?(n/1e6).toFixed(2)+'M':Math.abs(n)>=1e4?(n/1e3).toFixed(1)+'K':(+n.toFixed(2)).toLocaleString();
+const save=()=>{try{localStorage.setItem('pocketbi',JSON.stringify(S))}catch(e){}};
+const toast=m=>{const t=$('#toast');t.textContent=m;t.hidden=false;setTimeout(()=>t.hidden=true,2800)};
+try{const s=JSON.parse(localStorage.getItem('pocketbi')||'null');if(s&&s.rows&&s.rows.length)S=s}catch(e){}
+
+function sortKeys(k){const mi=x=>MO.indexOf(String(x).slice(0,3).toLowerCase());
+ if(k.every(x=>mi(x)>=0))return k.sort((a,b)=>mi(a)-mi(b));
+ if(k.every(x=>!isNaN(num(x))))return k.sort((a,b)=>num(a)-num(b));
+ if(k.every(x=>!isNaN(Date.parse(x))))return k.sort((a,b)=>Date.parse(a)-Date.parse(b));
+ return k.sort((a,b)=>String(a).localeCompare(String(b)))}
+function agg(rows,y,f){if(f==='count')return rows.length;
+ const v=rows.map(r=>r[y]).filter(isn);if(!v.length)return 0;
+ const s=v.reduce((a,b)=>a+b,0);
+ return f==='sum'?s:f==='avg'?s/v.length:f==='min'?v.reduce((a,b)=>Math.min(a,b)):v.reduce((a,b)=>Math.max(a,b))}
+const fr=()=>S.rows.filter(r=>Object.entries(S.flt).every(([c,a])=>!a.length||a.includes(String(r[c]))));
+const FN={sum:'Sum',avg:'Average',count:'Count',min:'Min',max:'Max'};
+const title=t=>t.t==='table'?'Data table (first 50 rows)':t.t==='scatter'?t.y+' vs '+t.x:t.z?t.y+' ÷ '+t.z:(t.f==='count'?'Row count':FN[t.f]+' of '+t.y)+(t.t==='kpi'?'':' by '+t.x);
+
+function setData(name,rows){if(rows.length>50000){rows=rows.slice(0,50000);toast('Large file: using the first 50,000 rows')}
+ S.cols=Object.keys(rows[0]).map(n=>{const v=rows.map(r=>r[n]).filter(x=>x!=='');return{n,num:v.length>0&&v.filter(x=>!isNaN(num(x))).length/v.length>.9}});
+ S.rows=rows.map(r=>{const o={};S.cols.forEach(c=>o[c.n]=c.num?num(r[c.n]):String(r[c.n]).trim());return o});
+ S.name=name;S.flt={};S.boards=null;S.cur=0;S.at=new Date().toLocaleString();V=0;auto();save();draw()}
+function auto(){
+ const ct=S.cols.filter(c=>!c.num),y=(S.cols.find(c=>c.num)||{}).n||'',f=y?'sum':'count',
+ tc=ct.find(c=>/date|month|year|day|week|time/i.test(c.n)),oc=ct.filter(c=>c!==tc);
+ S.tiles=y?[{t:'kpi',y,f:'sum'},{t:'kpi',y,f:'avg'},{t:'kpi',y,f:'max'},{t:'kpi',y:'',f:'count'}]:[{t:'kpi',y:'',f:'count'}];
+ if(tc)S.tiles.push({t:'line',x:tc.n,y,f});
+ if(oc[0])S.tiles.push({t:'bar',x:oc[0].n,y,f});
+ if(oc[1])S.tiles.push({t:'donut',x:oc[1].n,y,f});
+ if(oc[2])S.tiles.push({t:'hbar',x:oc[2].n,y,f});
+ S.tiles.push({t:'table'})}
+
+function draw(){
+ charts.forEach(c=>c.destroy());charts=[];
+ const has=S.rows.length>0,g=$('#grid');g.innerHTML='';
+ $('#empty').hidden=has;$('#bar').hidden=!has;document.querySelectorAll('.v').forEach((e,j)=>e.hidden=j!==V||!has);document.querySelectorAll('#bar button').forEach((b,j)=>b.classList.toggle('on',j===V));
+ const n=Object.values(S.flt).filter(a=>a.length).length;$('#fc').textContent=n?'('+n+')':'';
+ if(!has){$('#sub').textContent='';return}
+ const rows=fr(),cs=getComputedStyle(document.documentElement);
+ $('#sub').textContent=S.name+' – '+rows.length.toLocaleString()+' of '+S.rows.length.toLocaleString()+' rows'+(S.at?' – imported '+S.at:'');
+ if(V>0){[0,savedV,dataV,askV][V]();return}$('#af2').innerHTML=Object.entries(S.flt).flatMap(([c,a])=>a.map(v=>'<button class="chip on" data-c="'+esc(c)+'" data-v="'+esc(v)+'">'+esc(c)+': '+(esc(v)||'(blank)')+' ✕</button>')).join('');if(!S.tiles.length)g.innerHTML='<p class="mut" style="grid-column:1/-1">No visuals yet. Tap Add visual.</p>';Chart.defaults.color=cs.getPropertyValue('--mut').trim();Chart.defaults.borderColor=cs.getPropertyValue('--line').trim();
+ Chart.defaults.font.family='Manrope,system-ui,sans-serif';
+ S.tiles.forEach((t,i)=>{
+  const d=document.createElement('div');d.className='tile'+(t.t==='kpi'?' k':'');
+  d.innerHTML='<div class="th"><span>'+esc(title(t))+'</span><button data-i="'+i+'" aria-label="Remove visual">✕</button></div>';
+  g.appendChild(d);
+  if(t.t==='kpi'){d.insertAdjacentHTML('beforeend','<div class="kpi">'+kf(kv(rows,t),t)+'</div>'+trend(rows,t));return}
+  if(t.t==='table'){const h=S.cols.map(c=>'<th>'+esc(c.n)+'</th>').join(''),b=rows.slice(0,50).map(r=>'<tr>'+S.cols.map(c=>'<td>'+esc(isn(r[c.n])||typeof r[c.n]==='string'?r[c.n]:'')+'</td>').join('')+'</tr>').join('');
+   d.insertAdjacentHTML('beforeend','<div class="tb"><table><tr>'+h+'</tr>'+b+'</table></div>');return}
+  if(t.t==='scatter'){const w=document.createElement('div'),c=document.createElement('canvas');w.className='cv';w.appendChild(c);d.appendChild(w);charts.push(new Chart(c,{type:'scatter',data:{datasets:[{data:rows.filter(r=>isn(r[t.x])&&isn(r[t.y])).slice(0,800).map(r=>({x:r[t.x],y:r[t.y]})),backgroundColor:PAL[0]+'99'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{title:{display:true,text:t.x}},y:{title:{display:true,text:t.y}}}}}));return}const m=new Map();rows.forEach(r=>{const k=String(r[t.x]);if(!m.has(k))m.set(k,[]);m.get(k).push(r)});
+  let p=[...m].map(([k,a])=>[k,agg(a,t.y,t.f)]);
+  if(t.t==='line'||t.t==='area'){const mp=new Map(p);p=sortKeys([...mp.keys()]).map(k=>[k,mp.get(k)])}
+  else p=p.sort((a,b)=>b[1]-a[1]).slice(0,12);
+  const w=document.createElement('div'),c=document.createElement('canvas'),dn=t.t==='donut'||t.t==='pie',ln=t.t==='line'||t.t==='area';
+  w.className='cv';w.appendChild(c);d.appendChild(w);
+  charts.push(new Chart(c,{type:t.t==='pie'?'pie':dn?'doughnut':ln?'line':'bar',
+   data:{labels:p.map(q=>q[0]),datasets:[{data:p.map(q=>q[1]),backgroundColor:dn?p.map((_,j)=>PAL[j%8]):ln?PAL[0]+'33':PAL[0],borderColor:ln?PAL[0]:cs.getPropertyValue('--card').trim(),borderWidth:ln?2.5:dn?2:0,fill:t.t==='area',tension:.3,borderRadius:5,pointRadius:ln&&p.length<40?3:0}]},
+   options:{indexAxis:t.t==='hbar'?'y':'x',onClick:(e,el)=>{if(el.length){const v=p[el[0].index][0];setTimeout(()=>xf(t.x,v),0)}},responsive:true,maintainAspectRatio:false,plugins:{legend:{display:dn,position:'bottom'}}}}))})}
+
+const sheet=h=>{$('#sc').innerHTML=h;$('#sh').hidden=false},shut=()=>{$('#sh').hidden=true};
+const opt=(a,s)=>a.map(c=>'<option'+(c===s?' selected':'')+'>'+esc(c)+'</option>').join('');
+$('#sh').onclick=e=>{if(e.target.id==='sh')shut()};
+function addSheet(){
+ const all=S.cols.map(c=>c.n),nm=S.cols.filter(c=>c.num).map(c=>c.n),ct=S.cols.filter(c=>!c.num).map(c=>c.n);
+ sheet('<h3>Add visual</h3><label>Visual type<select id="at"><option value="bar">Column chart</option><option value="hbar">Bar chart</option><option value="line">Line chart</option><option value="area">Area chart</option><option value="donut">Donut chart</option><option value="pie">Pie chart</option><option value="scatter">Scatter plot</option><option value="kpi">KPI card</option><option value="table">Data table</option></select></label><div id="fl"><label id="lx">Group by<select id="ax">'+opt(all,ct[0])+'</select></label><label>Value<select id="ay">'+opt(nm.length?nm:all)+'</select></label><label>Summarise as<select id="af"><option value="sum">Sum</option><option value="avg">Average</option><option value="count">Count</option><option value="max">Max</option><option value="min">Min</option></select></label><label id="lz" hidden>Divide by (optional ratio)<select id="az"><option value="">None</option>'+opt(nm)+'</select></label><label id="lp" hidden>Show as<select id="ap"><option value="">Number</option><option value="1">Percent</option></select></label></div><button class="pri" id="go">Add to dashboard</button>');
+ $('#at').onchange=e=>{const v=e.target.value;$('#fl').hidden=v==='table';$('#lx').hidden=v==='kpi';$('#lz').hidden=$('#lp').hidden=v!=='kpi'};
+ $('#go').onclick=()=>{S.tiles.push({t:$('#at').value,x:$('#ax').value,y:$('#ay').value,f:$('#af').value,z:$('#az').value,pc:$('#ap').value});shut();save();draw()}}
+function filSheet(){
+ const ct=S.cols.filter(c=>new Set(S.rows.map(r=>r[c.n])).size<=40).map(c=>c.n);
+ if(!ct.length)return toast('No fields with 40 or fewer values to filter on');
+ sheet('<h3>Filters</h3><label>Field<select id="fs">'+opt(ct)+'</select></label><div class="chips" id="cp"></div><button class="sec" id="fc0">Clear all filters</button><button class="pri" id="fd">Done</button>');
+ const show=()=>{const c=$('#fs').value,on=S.flt[c]||[];$('#cp').innerHTML=sortKeys([...new Set(S.rows.map(r=>String(r[c])))]).map(v=>'<button class="chip'+(on.includes(v)?' on':'')+'" data-v="'+esc(v)+'">'+(esc(v)||'(blank)')+'</button>').join('')};
+ show();$('#fs').onchange=show;
+ $('#cp').onclick=e=>{const b=e.target.closest('.chip');if(!b)return;const c=$('#fs').value,v=b.dataset.v,a=S.flt[c]||[];S.flt[c]=a.includes(v)?a.filter(x=>x!==v):a.concat(v);show();save();draw()};
+ $('#fc0').onclick=()=>{S.flt={};show();save();draw()};$('#fd').onclick=shut}
+function sample(){let s=11;const r=()=>(s=s*16807%2147483647)/2147483647,pick=a=>a[Math.floor(r()*a.length)];
+ const M='Jan,Feb,Mar,Apr,May,Jun,Jul,Aug,Sep,Oct,Nov,Dec'.split(','),C=['Juice','Cold coffee','Snacks','Bakery'],price=[90,140,60,110],rows=[];
+ for(let i=0;i<320;i++){const c=Math.floor(r()*4),u=Math.round(5+r()*95);
+  rows.push({Month:pick(M),Region:pick(['Dhaka','Chattogram','Sylhet','Khulna']),Category:C[c],Channel:pick(['Facebook','Google','Email','Offline']),Revenue:Math.round(u*price[c]*(i%3===0?1.1:1)),Units:u})}
+ setData('Sample sales',rows)}
+
+const NL=String.fromCharCode(10),tcol=()=>(S.cols.find(c=>!c.num&&/date|month|year|day|week|time|quarter/i.test(c.n))||{}).n,kv=(rows,t)=>t.z?agg(rows,t.y,'sum')/(agg(rows,t.z,'sum')||NaN):agg(rows,t.y,t.f),kf=(v,t)=>v!==v?'n/a':t.pc?(v*100).toFixed(1)+'%':fmt(v),xf=(c,v)=>{const a=S.flt[c]||[];S.flt[c]=a.includes(v)?a.filter(x=>x!==v):a.concat(v);save();draw()};
+function trend(rows,t){const c=tcol();if(!c)return'';const m=new Map();rows.forEach(r=>{const k=String(r[c]);if(!m.has(k))m.set(k,[]);m.get(k).push(r)});const k=sortKeys([...m.keys()]);if(k.length<2)return'';const a=kv(m.get(k[k.length-1]),t),b=kv(m.get(k[k.length-2]),t);if(!(a===a&&b===b&&b))return'';const p=(a-b)/Math.abs(b)*100;return'<div class="d '+(p>=0?'up':'dn')+'">'+esc(k[k.length-1])+(p>=0?' ▲ ':' ▼ ')+Math.abs(p).toFixed(1)+'% vs '+esc(k[k.length-2])+'</div>'}
+function bd(){S.boards=S.boards||[{n:'Dashboard 1'}];S.cur=S.cur||0;S.boards[S.cur]={n:S.boards[S.cur].n,tiles:S.tiles,flt:S.flt};return S.boards}
+function ld(i){S.cur=i;S.tiles=S.boards[i].tiles||[];S.flt=S.boards[i].flt||{}}
+function savedV(){const b=bd();$('#v1').innerHTML='<h2>Saved dashboards</h2><p class="mut">Stored on this device with your data.</p>'+b.map((x,i)=>'<div class="rw"><div><b>'+esc(x.n)+'</b>'+(i===S.cur?' (open)':'')+'<br><small>'+(x.tiles||[]).length+' visuals</small></div><span><button class="chip" data-a="o" data-i="'+i+'">Open</button> <button class="chip" data-a="c" data-i="'+i+'">Copy</button> <button class="chip" data-a="x" data-i="'+i+'">Delete</button></span></div>').join('')+'<button class="pri" id="nb">New blank dashboard</button>'}
+$('#v1').onclick=e=>{const b=e.target.closest('button');if(!b)return;bd();if(b.id==='nb'){S.boards.push({n:'Dashboard '+(S.boards.length+1),tiles:[],flt:{}});ld(S.boards.length-1);V=0}else{const i=+b.dataset.i,a=b.dataset.a;if(a==='o'){ld(i);V=0}if(a==='c'){S.boards.splice(i+1,0,JSON.parse(JSON.stringify(S.boards[i])));S.boards[i+1].n='Copy of '+S.boards[i].n;if(i<S.cur)S.cur++}if(a==='x'){if(S.boards.length<2)return toast('Keep at least one dashboard');if(b.dataset.s!=='1'){b.dataset.s='1';b.textContent='Tap again';return}const cu=S.cur;S.boards.splice(i,1);ld(i===cu?Math.min(i,S.boards.length-1):cu>i?cu-1:cu)}}save();draw()};
+const dedupe=()=>{const s=new Set();S.rows=S.rows.filter(r=>{const k=JSON.stringify(r);if(s.has(k))return false;s.add(k);return true});save();draw();toast('Duplicates removed')},dropBlank=()=>{S.rows=S.rows.filter(r=>S.cols.every(k=>k.num?isn(r[k.n]):r[k.n]!==''));save();draw();toast('Rows with blanks removed')};
+function rt(){const c=S.cols;let r=S.rows;if(qs)r=r.filter(x=>c.some(k=>String(x[k.n]).toLowerCase().includes(qs)));if(sk)r=r.slice().sort((a,b)=>(a[sk]>b[sk]?1:a[sk]<b[sk]?-1:0)*sd);$('#dt').innerHTML='<p class="mut">'+r.length.toLocaleString()+' matching rows, showing 30. Tap a header to sort.</p><div class="tb"><table><tr>'+c.map(k=>'<th data-k="'+esc(k.n)+'">'+esc(k.n)+(sk===k.n?(sd>0?' ▲':' ▼'):'')+'</th>').join('')+'</tr>'+r.slice(0,30).map(x=>'<tr>'+c.map(k=>'<td>'+esc(isn(x[k.n])||typeof x[k.n]==='string'?x[k.n]:'')+'</td>').join('')+'</tr>').join('')+'</table></div>'}
+function dataV(){const c=S.cols,n=S.rows.length,dup=n-new Set(S.rows.map(r=>JSON.stringify(r))).size;$('#v2').innerHTML='<h2>Data</h2><div class="tl"><button class="pri" id="bOpen">Open file</button><button class="sec" id="bCsv">Copy CSV</button></div><div class="tl"><button class="sec" id="bFx">Add formula column</button></div><div class="msg">'+n.toLocaleString()+' rows, '+c.length+' columns, '+dup+' duplicate rows.</div><div class="tb"><table><tr><th>Column</th><th>Type</th><th>Blank or invalid</th><th>Distinct</th></tr>'+c.map(k=>'<tr><td>'+esc(k.n)+'</td><td>'+(k.num?'number':'text')+'</td><td>'+S.rows.filter(r=>k.num?!isn(r[k.n]):r[k.n]==='').length+'</td><td>'+new Set(S.rows.map(r=>r[k.n])).size+'</td></tr>').join('')+'</table></div><div class="tl" style="margin-top:12px"><button class="sec" id="bDd">Remove duplicates</button><button class="sec" id="bDb">Drop rows with blanks</button></div><input id="sq" placeholder="Search rows" value="'+esc(qs)+'" style="margin:12px 0"><div id="dt"></div>';$('#bOpen').onclick=()=>$('#file').click();$('#bCsv').onclick=csvSheet;$('#bFx').onclick=fxSheet;$('#bDd').onclick=dedupe;$('#bDb').onclick=dropBlank;$('#sq').oninput=e=>{qs=e.target.value.toLowerCase();rt()};$('#dt').onclick=e=>{const h=e.target.closest('th');if(!h)return;const k=h.dataset.k;sd=sk===k?-sd:1;sk=k;rt()};rt()}
+function calc(x,cols){let e=' '+x+' ';cols.map((c,j)=>[c.n,j]).sort((a,b)=>b[0].length-a[0].length).forEach(([n,j])=>{e=e.split(n).join(' @'+j+' ')});const tk=e.match(/@[0-9]+|[0-9]*[.]?[0-9]+|[-+*/()]/g)||[];if(!tk.length||tk.join('').length!==e.split(' ').join('').length)return null;let i=0;const ex=r=>{let v=tm(r);while(tk[i]==='+'||tk[i]==='-'){const o=tk[i++],w=tm(r);v=o==='+'?v+w:v-w}return v},tm=r=>{let v=fa(r);while(tk[i]==='*'||tk[i]==='/'){const o=tk[i++],w=fa(r);v=o==='*'?v*w:w?v/w:NaN}return v},fa=r=>{const t=tk[i++];if(t==='('){const v=ex(r);i++;return v}if(t==='-')return-fa(r);if(!t)return NaN;if(t[0]==='@'){const z=r[cols[+t.slice(1)].n];return isn(z)?z:NaN}return+t};return r=>{i=0;return ex(r)}}
+function fxSheet(){sheet('<h3>Calculated column</h3><label>Name<input id="fn" placeholder="ROAS"></label><label>Formula<input id="fe" placeholder="Revenue / Spend"></label><p class="mut">Use column names with + - * / and brackets, for example (Revenue - Cost) / Cost for ROI. Rows that cannot be calculated stay blank. For an overall ratio such as total ROAS, use a KPI card with Divide by instead.</p><button class="pri" id="fk">Add column</button>');$('#fk').onclick=()=>{const n=$('#fn').value.trim(),f=calc($('#fe').value,S.cols);if(!n||!f||S.cols.some(c=>c.n===n))return toast('Enter a new column name and a valid formula');const v=S.rows.map(r=>f(r));if(!v.some(isn))return toast('That formula gave no numbers. Check the column names.');S.cols.push({n,num:true});S.rows.forEach((r,i)=>r[n]=isn(v[i])?v[i]:NaN);shut();save();draw()}}
+function csvSheet(){const c=S.cols,rows=fr(),qt=v=>{v=isn(v)||typeof v==='string'?String(v):'';return /[",]/.test(v)||v.includes(NL)?'"'+v.replace(/"/g,'""')+'"':v},t=[c.map(k=>qt(k.n)).join(',')].concat(rows.map(r=>c.map(k=>qt(r[k.n])).join(','))).join(NL);sheet('<h3>Copy as CSV</h3><p class="mut">'+rows.length.toLocaleString()+' rows with the current filters. Copy, then paste into Excel, Sheets or Notes.</p><textarea id="ct" rows="8" readonly></textarea><button class="pri" id="cc">Copy to clipboard</button>');$('#ct').value=t;$('#cc').onclick=()=>{$('#ct').select();let k=false;try{k=document.execCommand('copy')}catch(e){}toast(k?'Copied':'Press and hold the text to copy it')}}
+function ans(q){const t=q.toLowerCase(),rows=fr(),hs=c=>t.includes(c.n.toLowerCase()),nc=S.cols.filter(c=>c.num),mc=nc.find(hs)||nc[0],d=S.cols.find(c=>!c.num&&hs(c)),tc=tcol();if(!mc)return'There is no numeric column in this dataset, so I can only count rows: '+rows.length.toLocaleString()+'.';const f=/average|avg|mean/.test(t)?'avg':'sum',pre=(nc.some(hs)?'':'No metric was named, so I used '+mc.n+'. ')+(Object.values(S.flt).some(a=>a.length)?'Current filters apply. ':''),ag=col=>{const m=new Map();rows.forEach(r=>{const k=String(r[col]);if(!m.has(k))m.set(k,[]);m.get(k).push(r)});return[...m].map(([k,a])=>[k,agg(a,mc.n,f)])};if(/unusual|anomal|outlier|spike|sudden/.test(t)){if(!tc)return'Finding unusual changes needs a date or month column, and this dataset has none.';const s=ag(tc),k=sortKeys(s.map(x=>x[0])),m=new Map(s),ch=k.slice(1).map((x,i)=>[x,(m.get(x)-m.get(k[i]))/Math.abs(m.get(k[i])||NaN)*100]).filter(c=>isn(c[1]));if(ch.length<3)return'There are too few periods in '+tc+' to judge what is unusual.';const mu=ch.reduce((a,c)=>a+c[1],0)/ch.length,sg=Math.sqrt(ch.reduce((a,c)=>a+(c[1]-mu)**2,0)/ch.length),fl=ch.filter(c=>sg&&Math.abs(c[1]-mu)/sg>=2),big=ch.slice().sort((a,b)=>Math.abs(b[1])-Math.abs(a[1]))[0];return pre+(fl.length?'Unusual changes in '+mc.n+' (2+ standard deviations from the typical change):'+NL+fl.map(c=>c[0]+': '+c[1].toFixed(1)+'%').join(NL):'No change in '+mc.n+' from one '+tc+' to the next is statistically unusual. The largest was '+big[0]+' at '+big[1].toFixed(1)+'%.')}if(/compare|versus| vs |last month|previous|this month|last period/.test(t)){if(!tc)return'Comparing periods needs a date or month column, and this dataset has none.';const s=ag(tc),k=sortKeys(s.map(x=>x[0])),m=new Map(s);if(k.length<2)return'There is only one period in '+tc+', so there is nothing to compare.';const a=m.get(k[k.length-1]),b=m.get(k[k.length-2]);return pre+'Using the two latest periods in the data. '+FN[f]+' of '+mc.n+': '+k[k.length-1]+' '+fmt(a)+' vs '+k[k.length-2]+' '+fmt(b)+(b?' ('+((a-b)/Math.abs(b)*100).toFixed(1)+'% change).':'.')}if(d&&/highest|most|best|top|largest|biggest|lowest|least|worst|smallest| by |each|per |which|breakdown/.test(t)){const lo=/lowest|least|worst|smallest/.test(t),s=ag(d.n).sort((a,b)=>b[1]-a[1]),tot=s.reduce((a,x)=>a+x[1],0),top=(lo?s.slice().reverse():s).slice(0,lo||/highest|most|best|top|largest|biggest/.test(t)?3:8);return pre+FN[f]+' of '+mc.n+' by '+d.n+':'+NL+top.map(x=>x[0]+': '+fmt(x[1])+(f==='sum'&&tot>0?' ('+(x[1]/tot*100).toFixed(1)+'% of total)':'')).join(NL)}if(/total|sum|average|avg|mean|overall|how much| max| min|maximum|minimum/.test(t)){const fx=/average|avg|mean/.test(t)?'avg':/ max|maximum/.test(t)?'max':/ min|minimum/.test(t)?'min':'sum';return pre+FN[fx]+' of '+mc.n+': '+fmt(agg(rows,mc.n,fx))+' across '+rows.length.toLocaleString()+' rows.'}if(/how many|count|rows/.test(t))return pre+rows.length.toLocaleString()+' rows match.';return'I cannot answer that from the data. Your columns are: '+S.cols.map(c=>c.n).join(', ')+'. Name one of them in your question, for example the highest '+mc.n+' by a category column.'}
+function askV(){const nm=(S.cols.find(c=>c.num)||{}).n,ct=(S.cols.find(c=>!c.num&&c.n!==tcol())||{}).n,tq=tcol(),sg=[ct&&nm&&'Which '+ct+' has the highest '+nm+'?',nm&&'Total '+nm,tq&&nm&&'Compare '+nm+' with the previous period',tq&&nm&&'Any unusual changes in '+nm+'?'].filter(Boolean);$('#v3').innerHTML='<h2>Ask your data</h2><p class="mut">Answers are calculated from the loaded data. If it cannot answer, it says so.</p><div class="chips">'+sg.map(s=>'<button class="chip">'+esc(s)+'</button>').join('')+'</div>'+CH.map(m=>'<div class="msg'+(m[0]?' u':'')+'">'+esc(m[1])+'</div>').join('')+'<div class="tl"><input id="aq" placeholder="Ask about your columns"><button class="pri" id="as" style="width:auto">Ask</button></div>';const send=q=>{q=q.trim();if(q){CH.push([1,q],[0,ans(q)]);askV()}};$('#as').onclick=()=>send($('#aq').value);$('#aq').onkeydown=e=>{if(e.key==='Enter')send(e.target.value)};$('#v3').querySelectorAll('.chip').forEach(b=>b.onclick=()=>send(b.textContent))}
+$('#grid').onclick=e=>{const b=e.target.closest('button[data-i]');if(b){S.tiles.splice(+b.dataset.i,1);save();draw()}};
+$('#o1').onclick=()=>$('#file').click();document.querySelectorAll('#bar button').forEach(b=>b.onclick=()=>{V=+b.dataset.v;draw()});$('#af2').onclick=e=>{const b=e.target.closest('.chip');if(b)xf(b.dataset.c,b.dataset.v)};
+$('#o2').onclick=sample;$('#bAdd').onclick=addSheet;$('#bFil').onclick=filSheet;
+$('#rs').onclick=()=>{S={name:'',rows:[],cols:[],tiles:[],flt:{}};save();draw()};
+$('#th').onclick=()=>{const r=document.documentElement,d=(r.dataset.theme||(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light'))==='dark';r.dataset.theme=d?'light':'dark';draw()};
+$('#file').onchange=async e=>{const f=e.target.files[0];if(!f)return;
+ try{let rows;if(f.name.toLowerCase().endsWith('.json')){let j=JSON.parse(await f.text());if(!Array.isArray(j))j=Object.values(j).find(Array.isArray);rows=(j||[]).map(o=>{const r={};Object.keys(o).forEach(k=>r[k]=o[k]==null?'':typeof o[k]==='object'?JSON.stringify(o[k]):o[k]);return r})}else{const wb=XLSX.read(await f.arrayBuffer(),{type:'array'});rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:'',raw:false})}
+  if(!rows.length)throw 0;setData(f.name,rows)}catch(x){toast('Could not read that file. Use a .csv or .xlsx file with a header row.')}
+ e.target.value=''};
+draw();
+</script></body></html>
